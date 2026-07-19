@@ -1,0 +1,28 @@
+# Render 배포 설정 (Blueprint)
+#
+# 이 파일이 저장소에 있으면 Render가 설정을 자동으로 읽는다.
+# ⚠️ ANTHROPIC_API_KEY는 여기 적지 않는다 — Render 대시보드에서 직접 입력한다.
+#    (파일에 적으면 저장소에 키가 남아 유출된다)
+
+services:
+  - type: web
+    name: ai-calendar-gateway
+    runtime: node
+    plan: free
+    region: singapore # 한국에서 가장 가까움
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false # ← 대시보드에서 직접 입력 (저장소에 남지 않음)
+      - key: DAILY_LIMIT
+        value: "20"
+      - key: BURST_LIMIT
+        value: "5"
+      - key: GLOBAL_DAILY_LIMIT
+        value: "5000"
+      - key: MODEL_BRIEFING
+        value: claude-haiku-4-5
+      - key: MODEL_ANALYZE
+        value: claude-opus-4-8
