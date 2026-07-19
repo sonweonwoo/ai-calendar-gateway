@@ -44,6 +44,49 @@ app.get('/health', (c) => {
   });
 });
 
+/**
+ * 테스터용 APK 다운로드 안내 페이지.
+ * 실제 파일은 GitHub Releases에 올리고 여기서 안내 + 연결만 한다.
+ * (큰 바이너리를 저장소에 넣으면 배포가 무거워지므로)
+ */
+app.get('/download', (c) => {
+  const url = process.env.APK_URL ?? '';
+  const version = process.env.APK_VERSION ?? '';
+  return c.html(`<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 스마트 일정 관리 · 설치</title>
+<style>
+ body{font-family:-apple-system,"Malgun Gothic",sans-serif;background:#FBF3EA;color:#4A3F37;
+      margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+ .card{background:#FFFAF4;border:1px solid #EFE0D0;border-radius:20px;max-width:420px;width:100%;
+       padding:30px 24px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.05)}
+ .icon{width:88px;height:88px;border-radius:22px;background:#E8998D;margin:0 auto 16px;
+       display:flex;align-items:center;justify-content:center;font-size:40px}
+ h1{font-size:1.3rem;margin:0 0 4px} .sub{color:#9C8B7C;font-size:.9rem;margin:0 0 22px}
+ a.btn{display:block;background:#E8998D;color:#fff;text-decoration:none;font-weight:700;
+       font-size:1.05rem;padding:15px;border-radius:14px;margin-bottom:16px}
+ .steps{text-align:left;background:#F6EBDF;border-radius:12px;padding:14px 16px;font-size:.88rem;line-height:1.75}
+ .warn{margin-top:14px;font-size:.8rem;color:#B0745F;line-height:1.5}
+ .none{background:#F6EBDF;border-radius:12px;padding:18px;font-size:.9rem;color:#9C8B7C}
+</style></head><body><div class="card">
+ <div class="icon">🗂️</div>
+ <h1>AI 스마트 일정 관리</h1>
+ <p class="sub">일정과 메모를 AI가 자동 정리해요${version ? ` · ${version}` : ''}<br>(안드로이드 전용)</p>
+ ${
+   url
+     ? `<a class="btn" href="${url}">📥 앱 설치파일 받기</a>
+ <div class="steps"><b>설치 방법</b><br>
+  1. 위 버튼으로 다운로드<br>
+  2. 받은 파일을 탭 → "이 출처의 앱 설치 허용" → 허용<br>
+  3. 설치 → 열기 → 사용 설명서 확인<br>
+  ※ 아이폰은 설치할 수 없어요</div>
+ <p class="warn">⚠️ 앱에서 일정을 수정·삭제하면 휴대폰 캘린더(삼성·구글)에도 반영됩니다.</p>`
+     : `<div class="none">아직 설치파일이 준비되지 않았어요.<br>잠시 후 다시 확인해 주세요.</div>`
+ }
+</div></body></html>`);
+});
+
 /** 남은 사용량 조회 */
 app.get('/v1/quota', (c) => {
   const userId = userIdOf(c);
