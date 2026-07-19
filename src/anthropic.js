@@ -28,7 +28,10 @@ export class AnthropicError extends Error {
  * @param {{prompt: string, kind: 'briefing'|'analyze', maxTokens?: number, signal?: AbortSignal}} opts
  */
 export async function complete({ prompt, kind, maxTokens, signal }) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  // 환경변수에 붙여넣을 때 따옴표·공백이 섞이는 실수가 잦다 → 서버가 정리해서 쓴다.
+  const apiKey = (process.env.ANTHROPIC_API_KEY ?? '')
+      .trim()
+      .replace(/^["']|["']$/g, '');
   if (!apiKey) throw new AnthropicError(500, 'server_not_configured');
 
   const model = MODELS[kind] ?? MODELS.analyze;

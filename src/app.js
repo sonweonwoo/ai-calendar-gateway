@@ -25,14 +25,24 @@ function appTokenOk(c) {
   return c.req.header('x-app-token') === expected;
 }
 
-app.get('/health', (c) =>
-  c.json({
+app.get('/health', (c) => {
+  // 키가 '있는지'만이 아니라 '형식이 맞는지'까지 알려준다.
+  // ⚠️ 키 자체는 절대 노출하지 않는다 — 길이와 접두사(공개 정보)만 보여준다.
+  const raw = process.env.ANTHROPIC_API_KEY ?? '';
+  const key = raw.trim();
+  return c.json({
     ok: true,
-    configured: Boolean(process.env.ANTHROPIC_API_KEY),
+    configured: key.length > 0,
+    keyCheck: {
+      length: key.length, // 정상: 100자 이상
+      prefixOk: key.startsWith('sk-ant-'), // 정상: true
+      hasQuotes: /^["']|["']$/.test(raw), // true면 따옴표까지 붙여넣은 것
+      hasSpace: raw !== key, // true면 앞뒤 공백이 섞인 것
+    },
     models: MODELS,
     dailyLimit: DAILY_LIMIT,
-  })
-);
+  });
+});
 
 /** 남은 사용량 조회 */
 app.get('/v1/quota', (c) => {
