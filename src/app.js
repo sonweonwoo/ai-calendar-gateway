@@ -53,8 +53,8 @@ app.get('/download', (c) => {
   // 기본값을 넣어 두어 환경변수 설정 없이도 바로 동작한다.
   // 새 버전을 낼 땐 Render 환경변수 APK_URL/APK_VERSION만 바꾸면 된다.
   const url = process.env.APK_URL ??
-    'https://github.com/sonweonwoo/ai-calendar-gateway/releases/download/v1.15.1/ai-smart-calendar-v1.15.0.apk';
-  const version = process.env.APK_VERSION ?? 'v1.15.0';
+    'https://github.com/sonweonwoo/ai-calendar-gateway/releases/download/v1.16.1/ai-smart-calendar-v1.16.1.apk';
+  const version = process.env.APK_VERSION ?? 'v1.16.1';
   return c.html(`<!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
