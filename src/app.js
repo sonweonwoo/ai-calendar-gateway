@@ -84,8 +84,10 @@ app.get('/health/ai', async (c) => {
 app.get('/download', (c) => {
   // 기본값을 넣어 두어 환경변수 설정 없이도 바로 동작한다.
   // 새 버전을 낼 땐 Render 환경변수 APK_URL/APK_VERSION만 바꾸면 된다.
+  // ⚠️ 태그가 'v1.06.1'인 것은 오타가 아니라 실제로 그렇게 만들어진 태그다.
+  //    파일명(v1.16.1)과 다르니 새 버전 낼 때 태그를 그대로 베끼지 말 것.
   const url = process.env.APK_URL ??
-    'https://github.com/sonweonwoo/ai-calendar-gateway/releases/download/v1.16.1/ai-smart-calendar-v1.16.1.apk';
+    'https://github.com/sonweonwoo/ai-calendar-gateway/releases/download/v1.06.1/ai-smart-calendar-v1.16.1.apk';
   const version = process.env.APK_VERSION ?? 'v1.16.1';
   return c.html(`<!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
