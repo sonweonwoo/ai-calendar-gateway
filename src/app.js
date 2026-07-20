@@ -30,6 +30,11 @@ app.get('/health', (c) => {
   // ⚠️ 키 자체는 절대 노출하지 않는다 — 길이와 접두사(공개 정보)만 보여준다.
   const raw = process.env.ANTHROPIC_API_KEY ?? '';
   const key = raw.trim();
+  // ⚠️ 변수명을 헷갈려 엉뚱한 이름(AI_API_KEY 등)에 키를 넣는 사고가 있었다.
+  //    형식만 맞으면 '정상'으로 보여서 원인 파악이 늦어졌으므로, 오해할 만한
+  //    이름에 값이 들어와 있으면 여기서 바로 경고한다.
+  const misnamed = ['AI_API_KEY', 'API_KEY', 'CLAUDE_API_KEY', 'ANTHROPIC_KEY']
+    .filter((n) => (process.env[n] ?? '').trim().length > 0);
   return c.json({
     ok: true,
     configured: key.length > 0,
@@ -38,10 +43,37 @@ app.get('/health', (c) => {
       prefixOk: key.startsWith('sk-ant-'), // 정상: true
       hasQuotes: /^["']|["']$/.test(raw), // true면 따옴표까지 붙여넣은 것
       hasSpace: raw !== key, // true면 앞뒤 공백이 섞인 것
+      // ⚠️ 형식이 맞아도 '유효한 키'라는 뜻은 아니다. 실제 확인은 /health/ai
+      note: '형식만 검사함. 실제 인증 확인은 /health/ai',
+      ...(misnamed.length ? { 잘못된_변수명: misnamed } : {}),
     },
     models: MODELS,
     dailyLimit: DAILY_LIMIT,
   });
+});
+
+/**
+ * 키가 '실제로 유효한지' 확인한다.
+ * /health는 형식만 보므로, 만료·삭제된 키도 정상으로 보인다.
+ * 여기서는 AI에 아주 짧은 요청을 실제로 보내 인증 결과를 확인한다.
+ * ⚠️ 키 값이나 상세 오류는 밖으로 내보내지 않는다(상태코드와 판정만).
+ */
+app.get('/health/ai', async (c) => {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 20_000);
+    await complete({ prompt: 'ping', kind: 'briefing', maxTokens: 8, signal: ctrl.signal });
+    clearTimeout(timer);
+    return c.json({ ok: true, auth: '정상', message: '키가 유효하고 AI 응답이 정상입니다.' });
+  } catch (e) {
+    const status = e instanceof AnthropicError ? e.status : 0;
+    const 진단 =
+      status === 401 ? '키가 무효합니다 — 삭제됐거나 잘못 입력된 키입니다(ANTHROPIC_API_KEY 확인).'
+      : status === 429 ? '키는 유효하지만 요청 한도에 걸렸습니다.'
+      : status === 400 ? '키는 유효하지만 요청 형식/모델 이름이 잘못됐습니다.'
+      : '연결 실패 — 잠시 후 다시 시도해 주세요.';
+    return c.json({ ok: false, auth: '실패', upstreamStatus: status, message: 진단 }, 200);
+  }
 });
 
 /**
